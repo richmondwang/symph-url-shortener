@@ -1,0 +1,193 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "URL Shortener API",
+    "version": "1.0.0",
+    "description": "This API allows clients to create and resolve shortened URLs. Users may specify a long URL, an optional custom slug, an optional expiration time and optional UTM parameters. Newly created links are cached in Redis for quick retrieval."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/api/shorten": {
+      "post": {
+        "summary": "Shorten a URL",
+        "description": "Create a shortened URL with optional custom slug, expiration and UTM parameters. Returns the generated slug, the full short link and the destination URL with UTM parameters appended.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ShortenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ShortenResponse" } } } },
+          "400": { "description": "Bad Request", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } },
+          "500": { "description": "Internal Server Error", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } }
+        }
+      }
+    },
+    "/{slug}": {
+      "get": {
+        "summary": "Redirect to destination",
+        "description": "Redirects to the original URL associated with the slug. Returns 301 Moved Permanently when the slug exists and has not expired.",
+        "parameters": [ { "name": "slug", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": {
+          "301": { "description": "Moved Permanently" },
+          "404": { "description": "Not Found" },
+          "410": { "description": "Gone" },
+          "500": { "description": "Internal Server Error" }
+        }
+      }
+    },
+    "/api/register": {
+      "post": {
+        "summary": "Register a new user",
+        "description": "Creates a new user with username and password",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RegisterRequest" } } }
+        },
+        "responses": {
+          "201": { "description": "User registered", "content": { "application/json": { "schema": { "type": "object", "properties": { "message": { "type": "string" } } } } } },
+          "400": { "description": "Bad Request", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } },
+          "409": { "description": "Conflict", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } },
+          "500": { "description": "Internal Server Error", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "summary": "Login",
+        "description": "Authenticates user and returns JWT valid for 1 hour",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Login successful", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } } } },
+          "400": { "description": "Bad Request", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } },
+          "500": { "description": "Internal Server Error", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } }
+        }
+      }
+    },
+    "/api/slugs": {
+      "get": {
+        "summary": "List user's shortened URLs",
+        "description": "Returns all shortened URLs for the authenticated user",
+        "parameters": [
+          { "name": "page", "in": "query", "required": false, "schema": { "type": "integer" } },
+          { "name": "size", "in": "query", "required": false, "schema": { "type": "integer" } },
+          { "name": "includeExpired", "in": "query", "required": false, "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "List of slugs", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SlugsResponse" } } } },
+          "500": { "description": "Internal Server Error", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } }
+        }
+      }
+    },
+    "/api/checkSlug": {
+      "post": {
+        "summary": "Check slug availability",
+        "description": "Checks if a custom slug is available (not present in the database)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckSlugRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Slug availability", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckSlugResponse" } } } },
+          "400": { "description": "Bad Request", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } },
+          "500": { "description": "Internal Server Error", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string" } } } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ShortenRequest": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "slug": { "type": "string" },
+          "expiration": { "type": "string" },
+          "utms": { "type": "object", "additionalProperties": { "type": "string" } },
+          "trackClicks": { "type": "boolean" }
+        },
+        "required": ["url"]
+      },
+      "ShortenResponse": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string" },
+          "shortLink": { "type": "string" },
+          "destination": { "type": "string" },
+          "expiration": { "type": "string" },
+          "trackClicks": { "type": "boolean" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["username", "password"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["username", "password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "expiresAt": { "type": "integer" }
+        }
+      },
+      "SlugsResponse": {
+        "type": "object",
+        "properties": {
+          "slugs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SlugInfo" }
+          }
+        }
+      },
+      "SlugInfo": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string" },
+          "shortLink": { "type": "string" },
+          "destination": { "type": "string" },
+          "expireAt": { "type": "string" },
+          "utms": { "type": "object", "additionalProperties": { "type": "string" } },
+          "redirectCount": { "type": "integer" },
+          "trackClicks": { "type": "boolean" }
+        }
+      },
+      "CheckSlugRequest": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string" }
+        },
+        "required": ["slug"]
+      },
+      "CheckSlugResponse": {
+        "type": "object",
+        "properties": {
+          "available": { "type": "boolean" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

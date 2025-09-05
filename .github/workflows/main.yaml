@@ -1,0 +1,32 @@
+---
+name: Build Test
+on:
+  push:
+    branches:
+    - "**"
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout ${{ github.repository }}
+      if: startsWith(github.ref, 'refs/tags/') == false
+      uses: actions/checkout@v4
+
+    - name: docker build-backend # should include tests during multibuild
+      uses: docker/build-push-action@v4
+      with:
+        file: backend/Dockerfile
+        context: backend
+        push: false
+        tags: ${{ github.repository }}/backend:${{ github.sha }}
+
+    - name: docker build-frontend # should include tests during multibuild
+      uses: docker/build-push-action@v4
+      with:
+        file: frontend/Dockerfile
+        context: frontend
+        push: false
+        tags: ${{ github.repository }}/frontend:${{ github.sha }}
+
+  # extend to deploy for stage and production later on...
