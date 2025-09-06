@@ -5,7 +5,7 @@ RUN apk add --no-cache --update build-base
 RUN adduser -u 1000 -D godev
 USER 1000
 
-ENV CGO_ENABLED=1
+ENV CGO_ENABLED=0
 ENV GOOS=linux
 ENV GOARCH=amd64
 ENV PATH="$PATH:/go/bin/${GOOS}_${GOARCH}"
@@ -28,8 +28,6 @@ CMD ["air", "--build.cmd", "go build -o api ./cmd/server/main.go", "--build.bin"
 
 
 FROM alpine:3.22
-
-RUN apk update && apk --no-cache --update add libpq && rm -rf /var/cache/apk/*
 
 RUN adduser -u 1000 -D app
 USER 1000
