@@ -52,7 +52,6 @@ services:
       - MONGODB_COLL=links
       - REDIS_ADDR=redis:6379
       - REDIS_DB=0
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000
       - JWT_SECRET_KEY=averysecureandlongsecretkeywhichshouldbestoredinenv
     volumes:
       - ./backend/internal:/app/internal

@@ -234,9 +234,14 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if result.ExpireAt != nil && time.Now().UTC().After(*result.ExpireAt) {
-		http.Error(w, "This link has expired", http.StatusGone)
-		return
+	// Use 302 for temporary links (with expiration), 301 for permanent
+	status := http.StatusMovedPermanently
+	if result.ExpireAt != nil {
+		status = http.StatusFound // 302
+		if time.Now().UTC().After(*result.ExpireAt) {
+			http.Error(w, "This link has expired", http.StatusGone)
+			return
+		}
 	}
 	// Only track clicks if enabled for this slug (persisted in DB)
 	if result.TrackClicks {
@@ -246,7 +251,7 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Expires", "0")
 	}
-	http.Redirect(w, r, result.URL, http.StatusMovedPermanently)
+	http.Redirect(w, r, result.URL, status)
 }
 
 // Register creates a new user with username and password
