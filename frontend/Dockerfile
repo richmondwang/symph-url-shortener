@@ -1,5 +1,5 @@
 # Base layer
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
 # Set the working directory 
 WORKDIR /app
@@ -15,7 +15,7 @@ RUN npm install --ignore-scripts
 COPY . .
 
 
-FROM build as dev
+FROM build AS dev
 
 COPY --from=build /app /app
 CMD ["npm", "run" , "dev"]

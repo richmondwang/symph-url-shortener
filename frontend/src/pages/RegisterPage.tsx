@@ -42,6 +42,7 @@ const RegisterPage = () => {
         setTimeout(() => {
           window.location.href = "/login";
         }, 1500);
+        return
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.message || "Registration failed.");
@@ -57,45 +58,53 @@ const RegisterPage = () => {
       <Box mt={8}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h5" gutterBottom>Register</Typography>
-          <TextField
-            label="Username"
-            fullWidth
-            margin="normal"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-          <TextField
-            label="Confirm Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-          />
-          {error && (
-            <Typography variant="body2" className="error-text mt-2">{error}</Typography>
-          )}
-          {success && (
-            <Typography variant="body2" className="success-text mt-2">{success}</Typography>
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 2 }}
-            onClick={handleRegister}
-            disabled={loading}
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              handleRegister();
+            }}
           >
-            {loading ? "Registering..." : "Register"}
-          </Button>
+            <TextField
+              label="Username"
+              fullWidth
+              margin="normal"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+            />
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+            <TextField
+              label="Confirm Password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+            />
+            {error && (
+              <Typography variant="body2" className="error-text mt-2">{error}</Typography>
+            )}
+            {success && (
+              <Typography variant="body2" className="success-text mt-2">{success}</Typography>
+            )}
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ mt: 2 }}
+              onClick={handleRegister}
+              disabled={loading}
+              type="submit"
+            >
+              {loading ? "Registering..." : "Register"}
+            </Button>
+          </form>
           <Box mt={2} textAlign="center">
             <MuiLink component={Link} to="/second">
               Already have an account? Login

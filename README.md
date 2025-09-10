@@ -68,6 +68,7 @@ A full-stack URL shortener application with authentication, analytics, and a mod
 ## Project Structure
 ```
 backend/         # Go backend (API, handlers, services, models)
+backend-node/    # Node/NestJS backend (API, controllers, services, models, DTO)
 frontend/        # React frontend (pages, components, assets)
 docker-compose.yml
 Makefile

@@ -32,7 +32,7 @@ services:
   backend:
     container_name: dev-api
     build:
-      context: ./backend
+      context: ./backend-node
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
@@ -47,16 +47,12 @@ services:
       - 8000:8000
     environment:
       - PORT=8000
-      - MONGODB_URI=mongodb://symph:symph@mongodb:27017
-      - MONGODB_DB=urlshortener
-      - MONGODB_COLL=links
-      - REDIS_ADDR=redis:6379
-      - REDIS_DB=0
+      - MONGO_URI=mongodb://symph:symph@mongodb:27017
+      - MONGO_DB=urlshortener
+      - REDIS_URL=redis:6379
       - JWT_SECRET_KEY=averysecureandlongsecretkeywhichshouldbestoredinenv
     volumes:
-      - ./backend/internal:/app/internal
-      - ./backend/cmd:/app/cmd
-      - ./backend/docs:/app/docs
+      - ./backend-node/src:/app/src
 
   frontend:
     container_name: dev-frontend
