@@ -77,6 +77,7 @@ export class MongoService {
       query.$or = [
         { expireAt: { $exists: false } },
         { expireAt: { $gt: new Date() } },
+        { expireAt: null },
       ];
     }
     const intSize = Number.isInteger(size)
