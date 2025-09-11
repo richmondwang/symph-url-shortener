@@ -21,6 +21,14 @@ jobs:
         push: false
         tags: ${{ github.repository }}/backend:${{ github.sha }}
 
+    - name: docker build-backend-nodejs # should include tests during multibuild
+      uses: docker/build-push-action@v4
+      with:
+        file: backend-node/Dockerfile
+        context: backend-node
+        push: false
+        tags: ${{ github.repository }}/backend-nodejs:${{ github.sha }}
+
     - name: docker build-frontend # should include tests during multibuild
       uses: docker/build-push-action@v4
       with:
